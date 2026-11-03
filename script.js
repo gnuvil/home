@@ -1,4 +1,4 @@
-// Uptime Kuma 공개 주소 (예: "https://status.example.org"). 비워 두면 상태 표시가 숨겨집니다.
+// Uptime Kuma 공개 주소 (예: "https://status.example.org"). 비워 두면 "상태 정보 준비 중"으로 남습니다.
 const KUMA_URL = "";
 const KUMA_SLUG = "main";
 const KUMA_MONITOR_ID = "2";
