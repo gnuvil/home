@@ -1,0 +1,110 @@
+:root {
+  --text: #1a1a1a;
+  --muted: #5f6368;
+  --bg: #ffffff;
+  --bg-alt: #f5f6f7;
+  --line: #e2e4e7;
+  --accent: #1f5eff;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+
+body {
+  margin: 0;
+  font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", -apple-system, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.wrap {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+.logo { font-weight: 700; font-size: 1.15rem; color: var(--text); }
+.logo:hover { text-decoration: none; }
+.nav { display: flex; gap: 20px; }
+.nav a { color: var(--text); font-size: 0.95rem; }
+
+.hero { padding: 96px 0 80px; }
+.hero h1 { margin: 0 0 12px; font-size: 2.6rem; line-height: 1.2; }
+.hero p { margin: 0 0 28px; color: var(--muted); font-size: 1.1rem; }
+
+.btn {
+  display: inline-block;
+  padding: 10px 22px;
+  background: var(--text);
+  color: #fff;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+.btn:hover { text-decoration: none; background: #000; }
+
+.section { padding: 64px 0; }
+.section.alt { background: var(--bg-alt); }
+.section h2 { margin: 0 0 20px; font-size: 1.5rem; }
+.section p { margin: 0; max-width: 620px; }
+
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.cards li {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 20px;
+}
+.cards h3 { margin: 0 0 6px; font-size: 1.05rem; }
+.cards p { color: var(--muted); font-size: 0.95rem; }
+
+.info {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 8px 16px;
+  margin: 0;
+}
+.info dt { color: var(--muted); }
+.info dd { margin: 0; }
+
+.footer {
+  padding: 28px 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .nav { gap: 14px; }
+  .nav a { font-size: 0.9rem; }
+  .hero { padding: 64px 0 56px; }
+  .hero h1 { font-size: 2rem; }
+  .section { padding: 48px 0; }
+  .cards { grid-template-columns: 1fr; }
+  .info { grid-template-columns: 64px 1fr; }
+}
