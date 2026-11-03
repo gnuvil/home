@@ -125,66 +125,7 @@ a:hover { text-decoration: underline; }
   font-size: 0.8rem;
 }
 
-/* IBM System x3500 M4 실제 비율 (높이 440 x 폭 218 x 깊이 750mm) */
-.box {
-  --w: 78px;
-  --h: 158px;
-  --d: 270px;
-  position: relative;
-  width: var(--w);
-  height: var(--h);
-  transform-style: preserve-3d;
-  transform: rotateX(-12deg) rotateY(-35deg);
-}
-.face {
-  position: absolute;
-  background: #34373c;
-  border: 1px solid #1b1c1f;
-}
-.front, .back { width: var(--w); height: var(--h); }
-.front { transform: translateZ(calc(var(--d) / 2)); background: #1e1f22; }
-.back { transform: rotateY(180deg) translateZ(calc(var(--d) / 2)); background: #26282c; }
-.right, .left {
-  width: var(--d);
-  height: var(--h);
-  left: calc((var(--w) - var(--d)) / 2);
-  background: linear-gradient(90deg, #3a3d42, #2f3236);
-}
-.right { transform: rotateY(90deg) translateZ(calc(var(--w) / 2)); }
-.left { transform: rotateY(-90deg) translateZ(calc(var(--w) / 2)); }
-.top, .bottom {
-  width: var(--w);
-  height: var(--d);
-  top: calc((var(--h) - var(--d)) / 2);
-}
-.top { transform: rotateX(90deg) translateZ(calc(var(--h) / 2)); background: #43464c; }
-.bottom { transform: rotateX(-90deg) translateZ(calc(var(--h) / 2)); background: #1b1c1f; }
-
-.bezel {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  height: 100%;
-  padding: 8px 7px;
-}
-.bezel span { display: block; }
-.odd { height: 8px; background: #4a4d53; border-radius: 1px; }
-.bays {
-  height: 52px;
-  background: repeating-linear-gradient(#2c2e33 0 5px, #121315 5px 6.5px);
-  border: 1px solid #121315;
-}
-.panel { display: flex; gap: 4px; padding: 3px 0; }
-.panel i { width: 4px; height: 4px; border-radius: 50%; background: #555; }
-.panel i:first-child { background: #3ddc6f; }
-.label { color: #9aa0a6; font-size: 5px; letter-spacing: 0.02em; white-space: nowrap; }
-.vent {
-  flex: 1;
-  background: radial-gradient(#0f1012 1px, transparent 1.3px) 0 0 / 4px 4px;
-}
-.back { display: flex; flex-direction: column; gap: 5px; padding: 10px 8px; }
-.psu { height: 22px; background: #3a3d42; border: 1px solid #121315; }
-.io { flex: 1; background: repeating-linear-gradient(90deg, #2f3236 0 6px, #1b1c1f 6px 8px); }
+#model-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 
 .server-info {
   display: flex;

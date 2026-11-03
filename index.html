@@ -60,23 +60,7 @@
     <section id="server" class="section">
       <div class="wrap server">
         <div class="model" id="model" aria-label="IBM System x3500 M4 3D 모델, 드래그해서 돌려볼 수 있음" role="img">
-          <div class="box">
-            <div class="face front">
-              <div class="bezel">
-                <span class="odd"></span>
-                <span class="odd"></span>
-                <span class="bays"></span>
-                <span class="panel"><i></i><i></i><i></i></span>
-                <span class="label">System x3500 M4</span>
-                <span class="vent"></span>
-              </div>
-            </div>
-            <div class="face back"><span class="psu"></span><span class="psu"></span><span class="io"></span></div>
-            <div class="face right"></div>
-            <div class="face left"></div>
-            <div class="face top"></div>
-            <div class="face bottom"></div>
-          </div>
+          <canvas id="model-canvas"></canvas>
           <p class="model-hint">드래그해서 돌려보기</p>
         </div>
         <div class="server-info">
@@ -113,7 +97,10 @@
   <footer class="footer">
     <div class="wrap">&copy; 그누빌</div>
   </footer>
-  <script src="model.js"></script>
+  <script type="importmap">
+    {"imports": {"three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js", "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+  </script>
+  <script type="module" src="model.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
