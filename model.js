@@ -61,6 +61,16 @@ function perforated(rx, ry) {
   }, [rx, ry]);
 }
 
+// 사각 타공 메시
+function squareMesh(rx, ry) {
+  return canvasTexture(16, 16, (g, w, h) => {
+    g.fillStyle = "#24262a";
+    g.fillRect(0, 0, w, h);
+    g.fillStyle = "#040405";
+    g.fillRect(2, 2, 12, 12);
+  }, [rx, ry]);
+}
+
 function label(text, w, h, size, color) {
   return canvasTexture(w, h, (g) => {
     g.fillStyle = color;
@@ -72,6 +82,9 @@ function label(text, w, h, size, color) {
 
 // ---------- 재질 ----------
 const mat = {
+  gloss: new THREE.MeshPhysicalMaterial({ color: 0x24262b, metalness: 0.35, roughness: 0.3, clearcoat: 0.8, clearcoatRoughness: 0.2 }),
+  piano: new THREE.MeshPhysicalMaterial({ color: 0x0b0b0d, metalness: 0.1, roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.05 }),
+  badge: new THREE.MeshStandardMaterial({ color: 0x1b5fb8, roughness: 0.4 }),
   steel: new THREE.MeshStandardMaterial({ color: 0x3a3e44, metalness: 0.55, roughness: 0.45 }),
   steelDark: new THREE.MeshStandardMaterial({ color: 0x1d1f23, metalness: 0.6, roughness: 0.5 }),
   plastic: new THREE.MeshStandardMaterial({ color: 0x17181b, metalness: 0.1, roughness: 0.55 }),
@@ -86,6 +99,7 @@ const mat = {
 };
 
 const server = new THREE.Group();
+let parent = server; // box()/plate()가 붙일 그룹
 
 function box(w, h, d, material, x, y, z, radius) {
   const geo = radius
@@ -93,7 +107,7 @@ function box(w, h, d, material, x, y, z, radius) {
     : new THREE.BoxGeometry(w, h, d);
   const m = new THREE.Mesh(geo, material);
   m.position.set(x, y, z);
-  server.add(m);
+  parent.add(m);
   return m;
 }
 
@@ -102,72 +116,74 @@ function plate(w, h, material, x, y, z, ry) {
   const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), material);
   m.position.set(x, y, z);
   if (ry) m.rotation.y = ry;
-  server.add(m);
+  parent.add(m);
   return m;
 }
 
 // ---------- 본체 ----------
 const bodyD = D - BEZEL;
-box(W, H, bodyD, mat.steel, 0, FOOT + H / 2, -BEZEL / 2, 0.04);
+box(W, H, bodyD, mat.gloss, 0, FOOT + H / 2, -BEZEL / 2, 0.05);
 
-// 옆판 이음선과 손잡이 홈
+// 옆판: 앞쪽 세로 손잡이 홈, 뒤쪽 가로 손잡이, 잠금 버튼
 for (const side of [-1, 1]) {
-  box(0.01, H - 0.3, 0.02, mat.steelDark, side * (W / 2 + 0.002), FOOT + H / 2, FRONT - BEZEL - 0.6);
-  box(0.01, 0.05, bodyD - 0.4, mat.steelDark, side * (W / 2 + 0.002), TOP - 0.25, -BEZEL / 2);
+  const sx = side * (W / 2 + 0.003);
+  const rot = side * Math.PI / 2;
+  plate(0.16, 0.95, mat.hole, sx, TOP - 0.85, FRONT - BEZEL - 0.55, rot);
+  plate(0.62, 0.32, mat.hole, sx, TOP - 0.95, FRONT - BEZEL - 2.6, rot);
+  plate(0.5, 0.22, mat.steelDark, side * (W / 2 + 0.005), TOP - 0.95, FRONT - BEZEL - 2.6, rot);
+  const lock = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.03, 32), mat.silver);
+  lock.rotation.z = Math.PI / 2;
+  lock.position.set(side * (W / 2 + 0.01), FOOT + H * 0.5, FRONT - BEZEL - 0.35);
+  server.add(lock);
+  const lockCenter = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.035, 24), mat.blue);
+  lockCenter.rotation.z = Math.PI / 2;
+  lockCenter.position.copy(lock.position);
+  lockCenter.position.x += side * 0.005;
+  server.add(lockCenter);
+  const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.02, 24), mat.hole);
+  hole.rotation.z = Math.PI / 2;
+  hole.position.set(side * (W / 2 + 0.008), FOOT + H * 0.5 - 0.42, FRONT - BEZEL - 0.75);
+  server.add(hole);
 }
-// 윗면 손잡이 홈
-box(W - 0.5, 0.02, 1.2, mat.steelDark, 0, TOP + 0.005, FRONT - BEZEL - 1.0, 0.008);
 
-// ---------- 앞 베젤 ----------
-box(W + 0.03, H + 0.02, BEZEL, mat.plastic, 0, FOOT + H / 2, FRONT - BEZEL / 2, 0.06);
+// ---------- 앞 베젤 (유광 검정 문) ----------
+// 실물처럼 아래쪽이 앞으로 나오게 위 모서리를 축으로 살짝 기울임
+const doorPivot = new THREE.Group();
+doorPivot.position.set(0, TOP, FRONT - BEZEL);
+doorPivot.rotation.x = -0.05;
+const door = new THREE.Group();
+door.position.set(0, -TOP, -(FRONT - BEZEL));
+doorPivot.add(door);
+server.add(doorPivot);
+parent = door;
+
+// 기울어서 생기는 아래쪽 틈이 보이지 않도록 뒤로 깊게
+box(W + 0.04, H + 0.02, BEZEL + 0.3, mat.gloss, 0, FOOT + H / 2, FRONT - BEZEL / 2 - 0.15, 0.06);
 const fz = FRONT + 0.002; // 베젤 앞면
+const doorW = W - 0.16;
+const split = FOOT + H * 0.56;  // 위 유광 패널과 아래 타공 패널 경계
 
-// 광학 드라이브 베이 2개
-for (let i = 0; i < 2; i++) {
-  const y = TOP - 0.32 - i * 0.42;
-  box(1.42, 0.36, 0.04, i === 0 ? mat.plasticLight : mat.plastic, -0.28, y, fz, 0.015);
-  box(1.3, 0.02, 0.02, mat.hole, -0.28, y - 0.08, fz + 0.025);
-  box(0.12, 0.05, 0.03, mat.plasticLight, 0.25, y - 0.1, fz + 0.03, 0.01);
-}
-
-// 오퍼레이터 패널 (전원 버튼, LED, USB)
-const px = 0.78;
-box(0.42, 0.82, 0.04, mat.plasticLight, px, TOP - 0.53, fz, 0.03);
-const power = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.04, 24), mat.ledGreen);
-power.rotation.x = Math.PI / 2;
-power.position.set(px, TOP - 0.28, fz + 0.04);
-server.add(power);
-box(0.05, 0.05, 0.02, mat.ledBlue, px - 0.09, TOP - 0.45, fz + 0.03);
-box(0.05, 0.05, 0.02, mat.ledAmber, px + 0.09, TOP - 0.45, fz + 0.03);
-for (let i = 0; i < 2; i++) {
-  box(0.2, 0.07, 0.02, mat.hole, px, TOP - 0.62 - i * 0.12, fz + 0.03);
-  box(0.16, 0.025, 0.02, mat.blue, px, TOP - 0.62 - i * 0.12, fz + 0.04);
-}
-
-// 2.5인치 핫스왑 드라이브 베이 (8개짜리 케이지 2단)
-const bayTex = perforated(2, 10);
-const trayMat = new THREE.MeshStandardMaterial({ map: bayTex, metalness: 0.4, roughness: 0.6 });
-const trayW = (W - 0.36) / 8;
-for (let row = 0; row < 2; row++) {
-  const cy = TOP - 1.78 - row * 0.9;
-  box(W - 0.22, 0.84, 0.03, mat.hole, 0, cy, fz);
-  for (let i = 0; i < 8; i++) {
-    const x = -((W - 0.36) / 2) + trayW * (i + 0.5);
-    box(trayW - 0.025, 0.78, 0.04, mat.plastic, x, cy, fz + 0.02, 0.01);
-    plate(trayW - 0.05, 0.5, trayMat, x, cy - 0.1, fz + 0.042);
-    box(trayW - 0.07, 0.09, 0.03, mat.orange, x, cy + 0.31, fz + 0.045, 0.01);
-    box(0.025, 0.025, 0.01, mat.ledGreen, x - 0.04, cy + 0.22, fz + 0.045);
-    box(0.025, 0.025, 0.01, mat.ledAmber, x + 0.04, cy + 0.22, fz + 0.045);
-  }
-}
-
+// 위쪽 유광 패널
+box(doorW, TOP - 0.1 - split, 0.05, mat.piano, 0, (TOP - 0.1 + split) / 2, fz, 0.02);
+// 경계 홈
+box(doorW, 0.025, 0.03, mat.hole, 0, split - 0.01, fz + 0.01);
 // 모델명 라벨
-plate(1.3, 0.16, new THREE.MeshBasicMaterial({ map: label("System x3500 M4", 256, 32, 20, "#c4c8ce"), transparent: true }),
-  -0.38, TOP - 3.03, fz + 0.01);
+plate(0.9, 0.12, new THREE.MeshBasicMaterial({ map: label("System x3500 M4", 256, 36, 22, "#d6d9dd"), transparent: true }),
+  0.32, TOP - 0.32, fz + 0.03);
+// 왼쪽 세로 손잡이 홈, 오른쪽 잠금 장치
+box(0.08, 0.7, 0.03, mat.hole, -doorW / 2 + 0.12, TOP - 0.95, fz + 0.02, 0.01);
+box(0.05, 0.22, 0.03, mat.silver, doorW / 2 - 0.1, TOP - 0.95, fz + 0.035, 0.01);
 
-// 아래쪽 벌집 통풍구
-plate(W - 0.22, 1.28, new THREE.MeshStandardMaterial({ map: honeycomb(9, 6), roughness: 0.6 }),
-  0, FOOT + 0.82, fz + 0.01);
+// 아래쪽 타공 패널
+const meshH = split - 0.04 - (FOOT + 0.22);
+plate(doorW - 0.42, meshH, new THREE.MeshStandardMaterial({ map: squareMesh(26, 30), roughness: 0.5, metalness: 0.3 }),
+  -0.19, FOOT + 0.22 + meshH / 2, fz + 0.03);
+// IBM 로고, Xeon 배지
+plate(0.42, 0.16, new THREE.MeshBasicMaterial({ map: label("IBM", 128, 48, 40, "#e4e6e9"), transparent: true }),
+  doorW / 2 - 0.16, split - 0.45, fz + 0.03);
+box(0.2, 0.2, 0.01, mat.badge, -doorW / 2 + 0.18, FOOT + 0.38, fz + 0.04);
+box(0.14, 0.05, 0.012, mat.silver, -doorW / 2 + 0.18, FOOT + 0.42, fz + 0.045);
+parent = server;
 
 // ---------- 뒷면 ----------
 const bz = -D / 2 - 0.002;
@@ -220,6 +236,9 @@ scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
 const key = new THREE.DirectionalLight(0xffffff, 1.6);
 key.position.set(5, 8, 6);
+const fill = new THREE.DirectionalLight(0xffffff, 1.2);
+fill.position.set(-8, 3, 4);
+scene.add(fill);
 scene.add(key);
 scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f96, 0.6));
 
@@ -253,7 +272,7 @@ scene.add(tilt);
 const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 100);
 camera.position.set(0, -0.4, 22);
 
-let ry = -0.65, rx = 0.32;
+let ry = 0.75, rx = 0.2;
 
 function draw() {
   spin.rotation.y = ry;
