@@ -1,37 +1,37 @@
-// 상태 서버의 공개 주소. 비워 두면 상태 표시가 숨겨집니다.
-const STATUS_URL = "";
+// Uptime Kuma 공개 주소 (예: "https://status.example.org"). 비워 두면 상태 표시가 숨겨집니다.
+const KUMA_URL = "";
+const KUMA_SLUG = "main";
+const KUMA_MONITOR_ID = "2";
 
 const el = document.getElementById("status");
 
-function formatUptime(sec) {
-  const d = Math.floor(sec / 86400);
-  const h = Math.floor((sec % 86400) / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  if (d > 0) return d + "일 " + h + "시간";
-  if (h > 0) return h + "시간 " + m + "분";
-  return m + "분";
-}
+// Kuma 하트비트 상태 코드: 0 다운, 1 업, 2 대기, 3 점검
+const LABELS = { 0: "서버 오프라인", 1: "서버 온라인", 2: "서버 확인 중", 3: "서버 점검 중" };
 
-function render(online, text) {
-  el.className = "status " + (online ? "on" : "off");
+function render(state, text) {
+  el.className = "status " + state;
   el.querySelector(".status-text").textContent = text;
   el.hidden = false;
 }
 
 async function update() {
   try {
-    const res = await fetch(STATUS_URL, { cache: "no-store" });
+    const res = await fetch(KUMA_URL + "/api/status-page/heartbeat/" + KUMA_SLUG, { cache: "no-store" });
     if (!res.ok) throw new Error(res.status);
-    const s = await res.json();
-    render(true, "서버 온라인 · 가동 " + formatUptime(s.uptime) +
-      " · CPU " + Math.min(100, Math.round(100 * s.load / s.cpus)) + "%" +
-      " · 메모리 " + s.memory + "%");
+    const data = await res.json();
+    const beats = data.heartbeatList[KUMA_MONITOR_ID] || [];
+    const last = beats[beats.length - 1];
+    if (!last) throw new Error("no heartbeat");
+    const uptime = data.uptimeList[KUMA_MONITOR_ID + "_24"];
+    let text = LABELS[last.status] || LABELS[0];
+    if (typeof uptime === "number") text += " · 24시간 가동률 " + (uptime * 100).toFixed(1) + "%";
+    render(last.status === 1 ? "on" : last.status === 0 ? "off" : "", text);
   } catch (e) {
-    render(false, "서버 오프라인");
+    render("off", "서버 오프라인");
   }
 }
 
-if (el && STATUS_URL) {
+if (el && KUMA_URL) {
   update();
-  setInterval(update, 30000);
+  setInterval(update, 60000);
 }
