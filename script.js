@@ -35,3 +35,23 @@ if (el && KUMA_URL) {
   update();
   setInterval(update, 60000);
 }
+
+// ── 모바일 네비게이션 토글 ──
+const toggle = document.querySelector('.nav-toggle');
+const nav = document.querySelector('.nav');
+
+if (toggle && nav) {
+  toggle.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!open));
+    nav.classList.toggle('open');
+  });
+
+  // 메뉴 항목 클릭 시 닫기
+  nav.addEventListener('click', (e) => {
+    if (e.target.tagName === 'A') {
+      toggle.setAttribute('aria-expanded', 'false');
+      nav.classList.remove('open');
+    }
+  });
+}
